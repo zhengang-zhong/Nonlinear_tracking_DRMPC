@@ -130,7 +130,7 @@ class Stack_model(Linear_model):
             self.A = self.A.full()
             self.B = self.B.full()
             self.delta = self.delta  # delta = 0
-        print(self.A,self.B)
+        # print(self.A,self.B)
 
         Nx = self.Nx
         Nu = self.Nu
@@ -545,7 +545,7 @@ class Opt_problem(Stack_model):
         # Ju = np.zeros(np.shape(Ju))
         eigval, eigvec = np.linalg.eig(Ju + Bx.T @ Jx @ Bx)
         eigval_mat = np.diag(eigval)
-        print("EV,EM",eigval,eigvec)
+        # print("EV,EM",eigval,eigvec)
         # print("Eigen value", Ju + Bx.T @ Jx @ Bx - eigvec @ eigval_mat @ np.linalg.inv(eigvec))
         # Loss function
         loss_func = 0
@@ -806,7 +806,7 @@ class Simulation():
             #     print( prob.solve(verbose=True))
 
             prob.solve(solver=cp.MOSEK)
-            print("opt value:", prob.value)
+            # print("opt value:", prob.value)
             #     print( prob.solve(verbose=True))
             #         prob.solve(solver = cp.MOSEK,verbose = True, mosek_params = {mosek.dparam.basis_tol_s:1e-9, mosek.dparam.ana_sol_infeas_tol:0})
             #         print(Ax @ x_init +  Bx @ H.value @ W_sample_matrix_ext[:,0:1]  + Cx @ W_sample_matrix[:,0:1])
@@ -824,24 +824,24 @@ class Simulation():
             ur_ext_temp = opt_problem.ur_ext
             temp_v = (opt_problem.Bx @ opt_problem.H.value + opt_problem.Cx_tilde_obj) @ mu_w_temp
             # print("obj",temp_v.T @ opt_problem.Jx @ temp_v + opt_problem.H.value.T @ opt_problem.Ju @ opt_problem.H.value)
-            print("value 1", temp_v.T @ opt_problem.Jx @ temp_v)
-            print("value 2", (opt_problem.H.value @ mu_w_temp - ur_ext_temp).T @ opt_problem.Ju @ (opt_problem.H.value @ mu_w_temp - ur_ext_temp))
+            # print("value 1", temp_v.T @ opt_problem.Jx @ temp_v)
+            # print("value 2", (opt_problem.H.value @ mu_w_temp - ur_ext_temp).T @ opt_problem.Ju @ (opt_problem.H.value @ mu_w_temp - ur_ext_temp))
 
-            print("obj",temp_v.T @ opt_problem.Jx @ temp_v + (opt_problem.H.value @ mu_w_temp - ur_ext_temp).T @ opt_problem.Ju @ (opt_problem.H.value @ mu_w_temp - ur_ext_temp))
+            # print("obj",temp_v.T @ opt_problem.Jx @ temp_v + (opt_problem.H.value @ mu_w_temp - ur_ext_temp).T @ opt_problem.Ju @ (opt_problem.H.value @ mu_w_temp - ur_ext_temp))
             # print("disturbance data", W_sample_matrix)
 
             wk = sin_const * np.sin(np.random.randn(Nd, 1))
             # uk = opt_problem.H_cal_dec.value[0, 0] + opt_problem.H_cal_dec.value[0, 1] * (D @ xk  + E @ wk)
             uk = opt_problem.H_cal_dec.value[0, 0] + opt_problem.H_cal_dec.value[0, 1] * (D @ (xk - xr) + E @ wk)
 
-            print(opt_problem.H_cal_dec.value[0, 0])
-            print(opt_problem.H_cal_dec.value[0, 1])
+            # print(opt_problem.H_cal_dec.value[0, 0])
+            # print(opt_problem.H_cal_dec.value[0, 1])
             # print(opt_problem.constraint)
             # print(-2 * opt_problem.ur_ext.T @ opt_problem.Ju @ H @ mu_w)
             # uk = opt_problem.H_cal_dec.value[0, 0] + opt_problem.H_cal_dec.value[0, 1] * (D @ (xk-np.array([[1],[0]]))+ E @ wk)
             # uk = uk + ur
             u_list += uk.flatten().tolist()
-            print("current state and input", xk, uk)
+            # print("current state and input", xk, uk)
             # x_kp1 = self.simulation_Euler(Ak, Bk, xk, uk)
             x_kp1 = opt_problem.dt_sys_fn(xk, uk).full()
 #             print(opt_problem.dt_sys_fn(xk, uk),type(opt_problem.dt_sys_fn(xk, uk)))
