@@ -1,6 +1,6 @@
 # Nonlinear_tracking_DRMPC
 
-1. Implement on the system "inverted pendulum"
+1. Implement on the nonlinear system "inverted pendulum"
 
    1. Reduced Violation as the number of samples increases
 
