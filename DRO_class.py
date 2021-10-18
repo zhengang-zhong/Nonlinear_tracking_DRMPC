@@ -4,7 +4,7 @@ import cvxpy as cp
 import mosek
 import matplotlib.pyplot as plt
 from numpy.linalg import matrix_power
-
+import gurobipy
 
 class Model:
     def __init__(self, sys_fn, delta_t, cont_time=True, nonlinear=False):
@@ -574,6 +574,7 @@ class Opt_problem(Stack_model):
         # loss_func += eigval[0] * cp.quad_form(H_new_matrix[0].T, I) + 2 * mu_w.T @ Cx_tilde.T @ Jx @ Bx @ H @ mu_w
         # loss_func += eigval[0] * cp.quad_form(H_new_matrix[0].T, I)
         loss_func += cp.quad_form(H_new[:,0], eigval_mat)
+        # print(np.shape(mu_w),np.shape(Cx_tilde), np.shape(Jx), np.shape(Bx), np.shape(H))
         loss_func += 2 * mu_w.T @ Cx_tilde.T @ Jx @ Bx @ H @ mu_w
         #     loss_func += eigval[0] * cp.quad_form(H_new_matrix[0].T, I) +  2 * mu_w.T @  Cx_tilde.T @ Jx @ Bx @ H_cal_dec @ (Cy_tilde + Ey_tilde) @ mu_w
         loss_func += mu_w.T @ Cx_tilde.T @ Jx @ Cx_tilde @ mu_w
@@ -794,6 +795,9 @@ class Simulation():
             #             self.model.change_xinit(xk)
             #             print(self.model.Ak)
 #             print(xr,ur)
+
+            # if i>= 75:
+            #     i_state_ub = ca.inf # for nonlinear inverted pendulum
             opt_problem = Opt_problem(sys_fn, delta_t, N, xk, C, D, E, Q, Qf, R, cont_time=cont_time, nonlinear=nonlinear, u_0=uk,
                                       xr=xr, ur=ur, collect=collect, est=est, mu=mu, sigma=sigma, beta=beta, sin_const=sin_const,
                                       N_sample=N_sample, epsilon=epsilon, i_th_state=i_th_state, i_state_ub=i_state_ub)
@@ -804,8 +808,18 @@ class Simulation():
             prob = opt_problem.prob
             #         print(W_sample_matrix)
             #     print( prob.solve(verbose=True))
+            # prob.solve(solver=cp.MOSEK,verbose = True)
+            try:
+                # prob.solve(solver=cp.MOSEK)
+                prob.solve(solver=cp.GUROBI)
+                # prob.solve(solver=cp.MOSEK, verbose = True)
+            except ValueError as e:
+                print('error type: ', type(e))
+                print("current state and input", xk, uk)
+                # print("solver state",prob.status)
+                # continue
 
-            prob.solve(solver=cp.MOSEK)
+
             # print("opt value:", prob.value)
             #     print( prob.solve(verbose=True))
             #         prob.solve(solver = cp.MOSEK,verbose = True, mosek_params = {mosek.dparam.basis_tol_s:1e-9, mosek.dparam.ana_sol_infeas_tol:0})
@@ -877,12 +891,25 @@ class Simulation():
 
         plt.figure(1, figsize=(10, 20))
         plt.clf()
+        # Print states
         for i in range(Nx):
             plt.subplot(str(Nx) + str(1) + str(i + 1))
             plt.grid()
             x_traj_temp = x_traj[i::Nx]
             plt.plot(t_plot, x_traj_temp)
             plt.ylabel('x' + str(i + 1))
+
+            # Print reference
+            ref_plot_temp = [ self.xr[i] ] * Nt
+            plt.plot(t_plot,ref_plot_temp,color = "k")
+
+            # Print constraint
+            if i == self.i_th_state:
+                v_constr = self.i_state_ub
+                constr_plot_temp = [v_constr] * Nt
+                plt.plot(t_plot, constr_plot_temp, color="r")
+
+
 
         plt.xlabel('t')
         plt.show()
